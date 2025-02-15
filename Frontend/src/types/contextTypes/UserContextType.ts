@@ -65,4 +65,7 @@ export interface UserContextType {
   userTools: UserTool[];
   setUserTools: React.Dispatch<React.SetStateAction<UserTool[]>>;
   toggleTool: (tool: UserTool) => void;
+  externalOllama: ExternalOllama[];
+  setExternalOllama: React.Dispatch<React.SetStateAction<ExternalOllama[]>>;
+  fetchExternalOllama: () => Promise<void>;
 }

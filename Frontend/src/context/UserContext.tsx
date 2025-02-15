@@ -76,6 +76,9 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
     userTools,
     setUserTools,
     toggleTool,
+    externalOllama,
+    setExternalOllama,
+    fetchExternalOllama,
   } = useModelManagement(activeUser);
 
   const {
@@ -228,6 +231,9 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       userTools,
       setUserTools,
       toggleTool,
+      externalOllama,
+      setExternalOllama,
+      fetchExternalOllama,
     }),
     [
       activeUser,
@@ -288,6 +294,9 @@ const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       userTools,
       setUserTools,
       toggleTool,
+      externalOllama,
+      setExternalOllama,
+      fetchExternalOllama,
     ]
   );
 

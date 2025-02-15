@@ -6,6 +6,7 @@ import { initializeShiki } from "@/lib/shikiHightlight";
 import { useLibrary } from "@/context/useLibrary";
 import { fetchEmbeddingModels } from "@/data/models";
 import { fetchSystemSpecs } from "@/data/sysSpecs";
+
 export function useAppInitialization() {
   const { setActiveView } = useView();
   const {
@@ -27,6 +28,7 @@ export function useAppInitialization() {
     fetchCustomModels,
     fetchTools,
     fetchSystemTools,
+    fetchExternalOllama,
   } = useUser();
   const {
     setUserCollections,
@@ -87,6 +89,7 @@ export function useAppInitialization() {
       getUserConversations();
       fetchApiKey();
       fetchPrompts();
+      fetchExternalOllama();
       fetchEmbeddingModels(setEmbeddingModels);
       fetchDevAPIKeys();
       fetchCollections();
