@@ -19,7 +19,6 @@ export const useModelManagement = (activeUser: User | null) => {
   const fetchExternalOllama = useCallback(async () => {
     if (!window.electron || !activeUser) return;
     const ollama = await window.electron.getExternalOllama(activeUser.id);
-    console.log("ollama", ollama);
     setExternalOllama(ollama.ollama);
   }, [activeUser]);
 

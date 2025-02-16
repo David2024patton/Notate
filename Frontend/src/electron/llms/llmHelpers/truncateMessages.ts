@@ -102,6 +102,5 @@ export function truncateMessages(
     );
   }
 
-  console.log("Truncated messages:", truncatedMessages);
   return truncatedMessages;
 }

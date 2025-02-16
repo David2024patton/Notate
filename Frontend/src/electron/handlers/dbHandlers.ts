@@ -331,7 +331,6 @@ export function setupDbHandlers() {
     }
   });
   ipcMainDatabaseHandle("updateUserTool", async (payload) => {
-    console.log("payload", payload);
     try {
       return {
         userId: payload.userId,

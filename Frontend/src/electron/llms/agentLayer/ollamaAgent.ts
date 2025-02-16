@@ -96,7 +96,6 @@ export async function ollamaAgent(
     "[REASONING]: " + "Visiting website: " + agentActions.url,
     mainWindow
   );
-  console.log("webSearchResult", webSearchResult);
   sendMessageChunk("[Agent]: " + JSON.stringify(webSearchResult), mainWindow);
   return {
     content: "Visiting website: " + agentActions.url,

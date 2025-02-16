@@ -110,7 +110,6 @@ export const ChatInput = memo(function ChatInput() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (input.trim()) {
-        console.log("handleSubmit");
         handleChatRequest(selectedCollection?.id || undefined);
       }
     },
@@ -123,7 +122,6 @@ export const ChatInput = memo(function ChatInput() {
       cancelRequest();
       setIsLoading(false);
     } else if (input.trim()) {
-      console.log("handleSendClick");
       await handleChatRequest(selectedCollection?.id || undefined);
     }
   }, [

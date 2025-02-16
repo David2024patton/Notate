@@ -60,7 +60,7 @@ export default function ExternalOllama() {
         externalOllamaApiKey,
         externalOllamaModel
       );
-      const updateSettings = await window.electron.updateUserSettings({
+      await window.electron.updateUserSettings({
         userId: activeUser.id,
         provider: "ollama external",
         baseUrl: externalOllamaEndpoint,
@@ -68,7 +68,6 @@ export default function ExternalOllama() {
         isLocal: false,
         selectedExternalOllamaId: ollamaId.id,
       });
-      console.log(updateSettings);
       toast({
         title: "Custom provider added",
         description: "Your custom provider has been added",
@@ -189,7 +188,7 @@ export default function ExternalOllama() {
                 <Input
                   id="endpoint"
                   type="text"
-                  placeholder="Endpoint (e.g. http://localhost:11434/api/chat)"
+                  placeholder="Endpoint (e.g. http://127.0.0.1:11434/v1/)"
                   value={externalOllamaEndpoint}
                   onChange={(e) => setExternalOllamaEndpoint(e.target.value)}
                   className="input-field"
