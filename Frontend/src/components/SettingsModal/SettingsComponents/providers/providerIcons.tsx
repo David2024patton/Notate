@@ -22,4 +22,5 @@ export const providerIcons: Record<string, ReactNode> = {
   "azure open ai": <SvgIcon src={azure} alt="Azure" />,
   deepseek: <SvgIcon src={deepseek} alt="DeepSeek" />,
   custom: <SvgIcon src={custom} alt="Custom" />,
+  "ollama external": <SvgIcon src={ollama} alt="Ollama" />,
 };

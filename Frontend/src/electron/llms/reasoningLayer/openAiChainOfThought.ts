@@ -22,8 +22,6 @@ export async function openAiChainOfThought(
   signal?: AbortSignal,
   mainWindow: BrowserWindow | null = null
 ) {
-  console.log("agentActions", agentActions);
-  console.log("webSearchResult", webSearchResult);
   const sysPrompt: ChatCompletionMessageParam = {
     role: "system",
     content:
@@ -44,7 +42,6 @@ export async function openAiChainOfThought(
           `\n\n*** THIS IS THE END OF THE DATA COLLECTION ***`
         : ""),
   };
-  console.log(sysPrompt);
   const truncatedMessages = truncateMessages(messages, maxOutputTokens);
   const newMessages = [sysPrompt, ...truncatedMessages];
   let reasoning;

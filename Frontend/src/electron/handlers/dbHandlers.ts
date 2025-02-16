@@ -331,7 +331,6 @@ export function setupDbHandlers() {
     }
   });
   ipcMainDatabaseHandle("updateUserTool", async (payload) => {
-    console.log("payload", payload);
     try {
       return {
         userId: payload.userId,
@@ -357,6 +356,38 @@ export function setupDbHandlers() {
       };
     } catch (error) {
       console.error("Error getting tools:", error);
+      throw error;
+    }
+  });
+  ipcMainDatabaseHandle("addExternalOllama", async (payload) => {
+    try {
+      return {
+        userId: payload.userId,
+        name: payload.name,
+        endpoint: payload.endpoint,
+        api_key: payload.api_key,
+        model: payload.model,
+        id: await db.addExternalOllama(
+          payload.userId,
+          payload.name,
+          payload.endpoint,
+          payload.api_key,
+          payload.model
+        ),
+      };
+    } catch (error) {
+      console.error("Error adding external ollama:", error);
+      throw error;
+    }
+  });
+  ipcMainDatabaseHandle("getExternalOllama", async (payload) => {
+    try {
+      return {
+        userId: payload.userId,
+        ollama: await db.getExternalOllama(payload.userId),
+      };
+    } catch (error) {
+      console.error("Error getting external ollama:", error);
       throw error;
     }
   });

@@ -8,6 +8,7 @@ import { LocalModelProvider } from "../providers/localModel.js";
 import { OllamaProvider } from "../providers/ollama.js";
 import { CustomProvider } from "../providers/customEndpoint.js";
 import { DeepSeekProvider } from "../providers/deepseek.js";
+import { ExternalOllamaProvider } from "../providers/externalOllama.js";
 
 export const providersMap = {
   openai: OpenAIProvider,
@@ -20,4 +21,5 @@ export const providersMap = {
   ollama: OllamaProvider,
   custom: CustomProvider,
   deepseek: DeepSeekProvider,
+  "ollama external": ExternalOllamaProvider,
 };

@@ -1,13 +1,13 @@
 import { LibraryModal } from "@/components/CollectionModals/LibraryModal";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogTitle,
-  DialogHeader,
-  DialogContent,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetTitle,
+  SheetHeader,
+  SheetContent,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Library, Send, X, Mic, Loader2, Globe } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
@@ -110,7 +110,6 @@ export const ChatInput = memo(function ChatInput() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (input.trim()) {
-        console.log("handleSubmit");
         handleChatRequest(selectedCollection?.id || undefined);
       }
     },
@@ -123,7 +122,6 @@ export const ChatInput = memo(function ChatInput() {
       cancelRequest();
       setIsLoading(false);
     } else if (input.trim()) {
-      console.log("handleSendClick");
       await handleChatRequest(selectedCollection?.id || undefined);
     }
   }, [
@@ -139,8 +137,8 @@ export const ChatInput = memo(function ChatInput() {
     <div className="p-4 bg-card border-t border-secondary">
       <form onSubmit={handleSubmit} className="flex w-full items-center">
         <div className="flex flex-col items-center">
-          <Dialog open={openLibrary} onOpenChange={setOpenLibrary}>
-            <DialogTrigger asChild>
+          <Sheet open={openLibrary} onOpenChange={setOpenLibrary}>
+            <SheetTrigger asChild>
               <Button
                 type="button"
                 size="icon"
@@ -150,15 +148,18 @@ export const ChatInput = memo(function ChatInput() {
                 <Library className="h-5 w-5" />
                 <span className="sr-only">Library</span>
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[100vh] mt-4 overflow-y-auto p-6">
-              <DialogHeader>
-                <DialogTitle>Data Store Library</DialogTitle>
-                <DialogDescription />
-              </DialogHeader>
+            </SheetTrigger>
+            <SheetContent
+              className="max-h-[100vh] mt-8 overflow-y-auto p-6"
+              side="left"
+            >
+              <SheetHeader>
+                <SheetTitle>Data Store Library</SheetTitle>
+                <SheetDescription />
+              </SheetHeader>
               <LibraryModal />
-            </DialogContent>
-          </Dialog>
+            </SheetContent>
+          </Sheet>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
