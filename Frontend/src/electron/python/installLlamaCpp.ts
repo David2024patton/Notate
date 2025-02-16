@@ -142,6 +142,26 @@ export async function installLlamaCpp(
       );
       try {
         startRotatingMessages(25.5);
+
+        // Check if we're on Linux and need to handle GCC version
+        const envVars: Record<string, string> = {
+          ...process.env,
+          FORCE_CMAKE: "1",
+          CMAKE_ARGS: "-DGGML_CUDA=ON",
+          LLAMA_CUDA: "1",
+          VERBOSE: "1",
+          CMAKE_BUILD_PARALLEL_LEVEL: "8",
+        };
+
+        if (process.platform === "linux") {
+          // Add CUDA compiler flags to allow newer GCC versions
+          envVars.NVCC_PREPEND_FLAGS = "-allow-unsupported-compiler";
+        }
+
+        if (process.platform === "win32") {
+          envVars.NVCC_PREPEND_FLAGS = "-ccbin /usr/bin/g++-13";
+        }
+
         await spawnAsync(
           venvPython,
           [
@@ -152,18 +172,9 @@ export async function installLlamaCpp(
             "--verbose",
             "llama-cpp-python",
           ],
-          {
-            env: {
-              ...process.env,
-              FORCE_CMAKE: "1",
-              CMAKE_ARGS: "-DGGML_CUDA=ON",
-              LLAMA_CUDA: "1",
-              VERBOSE: "1",
-              CMAKE_BUILD_PARALLEL_LEVEL: "8",
-              NVCC_PREPEND_FLAGS: "-ccbin /usr/bin/g++-13",
-            },
-          }
+          { env: envVars }
         );
+
         stopRotatingMessages();
         updateLoadingStatus("llama-cpp-python installed successfully", 30.5);
       } catch (error) {
@@ -220,7 +231,32 @@ export async function installLlamaCpp(
             throw error;
           }
         } else {
-          throw error;
+          // For Linux and other platforms, try falling back to CPU version
+          log.error(
+            "Failed to install CUDA version, falling back to CPU version",
+            error
+          );
+          stopRotatingMessages();
+
+          updateLoadingStatus(
+            "CUDA installation failed, falling back to CPU version",
+            30.5
+          );
+
+          await spawnAsync(venvPython, [
+            "-m",
+            "pip",
+            "install",
+            "--only-binary",
+            ":all:",
+            "llama-cpp-python",
+            "--extra-index-url",
+            "https://abetlen.github.io/llama-cpp-python/whl/cpu",
+            "--no-cache-dir",
+            "--verbose",
+          ]);
+
+          updateLoadingStatus("CPU-only installation completed", 32.5);
         }
       }
     } else {
