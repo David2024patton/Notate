@@ -1133,6 +1133,14 @@ class DatabaseService {
     api_key: string,
     model: string
   ) {
+    const existingOllama = this.db
+      .prepare("SELECT * FROM ollama_external WHERE user_id = ? AND name = ?")
+      .get(userId, name);
+    if (existingOllama) {
+      return {
+        error: "Ollama already exists",
+      };
+    }
     const lastInsertRowid = this.db
       .prepare(
         "INSERT INTO ollama_external (user_id, name, endpoint, api_key, model) VALUES (?, ?, ?, ?, ?)"

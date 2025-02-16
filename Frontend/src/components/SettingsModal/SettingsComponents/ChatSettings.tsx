@@ -101,7 +101,9 @@ export default function ChatSettings() {
       await window.electron.updateUserSettings({
         userId: activeUser.id,
         provider: "ollama external",
-        model: model_name,
+        model:
+          externalOllama?.find((model) => model.name === model_name)?.model ??
+          "",
         selectedExternalOllamaId:
           externalOllama?.find((model) => model.name === model_name)?.id ?? 0,
       });
@@ -387,7 +389,14 @@ export default function ChatSettings() {
             </Label>
             <Select
               value={
-                settings.provider === "custom"
+                settings.provider === "ollama external" && externalOllama
+                  ? (() => {
+                      const modelInfo = externalOllama.find(
+                        (m) => m.id === settings.selectedExternalOllamaId
+                      );
+                      return modelInfo?.name || settings.model;
+                    })()
+                  : settings.provider === "custom"
                   ? settings.displayModel || settings.model
                   : settings.model
               }
@@ -479,7 +488,23 @@ export default function ChatSettings() {
               }}
             >
               <SelectTrigger className="col-span-3 bg-background">
-                <SelectValue placeholder="Select model" />
+                <SelectValue placeholder="Select model">
+                  {settings.provider === "ollama external" && externalOllama
+                    ? (() => {
+                        const modelInfo = externalOllama.find(
+                          (m) => m.id === settings.selectedExternalOllamaId
+                        );
+                        if (modelInfo) {
+                          const endpoint =
+                            modelInfo.endpoint
+                              ?.replace(/^https?:\/\//, "")
+                              .replace(/\/.*$/, "") || "unknown";
+                          return `${modelInfo.name} [External: ${endpoint}]`;
+                        }
+                        return settings.model;
+                      })()
+                    : settings.model}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-background">
                 {apiKeys.map((apiKey) => (
@@ -541,11 +566,20 @@ export default function ChatSettings() {
                     </SelectLabel>
                     {modelOptions["ollama external"]
                       .filter((model) => model && model.trim() !== "")
-                      .map((model) => (
-                        <SelectItem key={model} value={model}>
-                          {model}
-                        </SelectItem>
-                      ))}
+                      .map((model) => {
+                        const modelInfo = externalOllama.find(
+                          (m) => m.name === model
+                        );
+                        const endpoint =
+                          modelInfo?.endpoint
+                            ?.replace(/^https?:\/\//, "")
+                            .replace(/\/.*$/, "") || "unknown";
+                        return (
+                          <SelectItem key={model} value={model}>
+                            {model} [External: {endpoint}]
+                          </SelectItem>
+                        );
+                      })}
                   </SelectGroup>
                 )}
               </SelectContent>

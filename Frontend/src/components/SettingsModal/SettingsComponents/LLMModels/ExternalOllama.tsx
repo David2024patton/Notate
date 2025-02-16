@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useUser } from "@/context/useUser";
 import { toast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Card,
@@ -22,11 +23,34 @@ import {
 export default function ExternalOllama() {
   const { activeUser, fetchExternalOllama, externalOllama } = useUser();
   const [externalOllamaName, setExternalOllamaName] = useState("");
+  const [selectedExternalOllama, setSelectedExternalOllama] =
+    useState<ExternalOllama | null>(null);
   const [externalOllamaEndpoint, setExternalOllamaEndpoint] = useState("");
   const [externalOllamaApiKey, setExternalOllamaApiKey] = useState("");
   const [externalOllamaModel, setExternalOllamaModel] = useState("");
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (externalOllamaName === "") {
+      toast({
+        title: "Error",
+        description: "Please enter a name",
+      });
+      return;
+    }
+    if (externalOllamaEndpoint === "") {
+      toast({
+        title: "Error",
+        description: "Please enter a endpoint",
+      });
+      return;
+    }
+    if (externalOllamaModel === "") {
+      toast({
+        title: "Error",
+        description: "Please enter a model",
+      });
+      return;
+    }
     try {
       if (!activeUser) return;
       const ollamaId = await window.electron.addExternalOllama(
@@ -36,7 +60,6 @@ export default function ExternalOllama() {
         externalOllamaApiKey,
         externalOllamaModel
       );
-      console.log(ollamaId);
       const updateSettings = await window.electron.updateUserSettings({
         userId: activeUser.id,
         provider: "ollama external",
@@ -54,6 +77,7 @@ export default function ExternalOllama() {
       setExternalOllamaEndpoint("");
       setExternalOllamaApiKey("");
       setExternalOllamaModel("");
+      setSelectedExternalOllama(null);
       fetchExternalOllama();
     } catch (error) {
       toast({
@@ -63,6 +87,13 @@ export default function ExternalOllama() {
           error,
       });
     }
+  };
+
+  const handleSelectedExternalOllama = (value: string) => {
+    const selectedModel = externalOllama.find((model) => model.name === value);
+    setSelectedExternalOllama(selectedModel || null);
+    setExternalOllamaEndpoint(selectedModel?.endpoint || "");
+    setExternalOllamaApiKey(selectedModel?.api_key || "");
   };
 
   return (
@@ -75,19 +106,61 @@ export default function ExternalOllama() {
           </TabsList>
           <TabsContent value="add-model">
             <Card className="py-2">
-              <CardContent className="space-y-2">
-                <Select onValueChange={setExternalOllamaModel}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {externalOllama.map((model) => (
-                      <SelectItem key={model.id} value={model.name}>
-                        {model.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <CardContent className="space-y-2 gap-2">
+                <div className="grid grid-cols-4 items-center gap-2 justify-between">
+                  <Label className="text-xs font-medium">
+                    {selectedExternalOllama
+                      ? "Selected Endpoint"
+                      : "Select a Endpoint"}
+                  </Label>
+                  <Select
+                    onValueChange={handleSelectedExternalOllama}
+                    value={selectedExternalOllama?.name}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select a endpoint" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {externalOllama.map((model) => (
+                        <SelectItem key={model.id} value={model.name}>
+                          {model.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedExternalOllama && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-4 items-center gap-2 justify-between">
+                      <Label htmlFor="name" className="text-xs font-medium">
+                        Name
+                      </Label>
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="Enter a a new name"
+                        value={externalOllamaName}
+                        onChange={(e) => setExternalOllamaName(e.target.value)}
+                        className="input-field col-span-3 bg-background"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-2 justify-between">
+                      <Label
+                        htmlFor="model-name"
+                        className="text-xs font-medium"
+                      >
+                        Model Name
+                      </Label>
+                      <Input
+                        id="model-name"
+                        value={externalOllamaModel}
+                        placeholder="Enter the model name"
+                        onChange={(e) => setExternalOllamaModel(e.target.value)}
+                        className="input-field col-span-3 bg-background"
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <Button onClick={handleSubmit} className="w-full">
@@ -121,7 +194,13 @@ export default function ExternalOllama() {
                   onChange={(e) => setExternalOllamaEndpoint(e.target.value)}
                   className="input-field"
                 />
-
+                <Input
+                  id="model-name"
+                  type="text"
+                  placeholder="Enter the model name"
+                  value={externalOllamaModel}
+                  onChange={(e) => setExternalOllamaModel(e.target.value)}
+                />
                 <Input
                   id="api-key"
                   type="password"
