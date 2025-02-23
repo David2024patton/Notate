@@ -180,6 +180,16 @@ class DatabaseService {
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS ollama_external (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
+          name TEXT NOT NULL,
+          endpoint TEXT NOT NULL,
+          api_key TEXT NOT NULL,
+          model TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS account (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           type TEXT NOT NULL,
@@ -467,6 +477,7 @@ class DatabaseService {
           "timestamp",
         ],
         retrieved_data: ["id", "message_id", "data_content"],
+        ollama_external: ["id", "user_id", "name", "endpoint", "api_key", "model"],
       } as const;
 
       tables.forEach((table) => {
