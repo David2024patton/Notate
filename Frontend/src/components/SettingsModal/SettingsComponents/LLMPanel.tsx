@@ -23,11 +23,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Search } from "lucide-react";
-
+import ExternalOllama from "./LLMModels/ExternalOllama";
 // Provider categories for better organization
 const providerCategories = {
   "Cloud Providers": ["openai", "anthropic", "gemini", "deepseek", "xai"],
-  "Self-Hosted": ["ollama", "local"],
+  "Self-Hosted": ["ollama", "ollama external", "local"],
   Advanced: ["openrouter", "azure open ai", "custom"],
 } as const;
 
@@ -139,6 +139,8 @@ export default function LLMPanel() {
             setShowUpdateInput={setShowUpdateInput}
           />
         );
+      case "ollama external":
+        return <ExternalOllama />;
       case "local":
         return <LocalLLM />;
       case "ollama":
@@ -225,13 +227,14 @@ export default function LLMPanel() {
       </div>
       {selectedProvider && (
         <>
-          <div className="mt-6">
+          <div className="mt-4">
             {renderInputs()}
             {selectedProvider.toLowerCase() !== "openrouter" &&
               selectedProvider.toLowerCase() !== "ollama" &&
               selectedProvider.toLowerCase() !== "local" &&
               selectedProvider.toLowerCase() !== "custom" &&
               selectedProvider.toLowerCase() !== "azure open ai" &&
+              selectedProvider.toLowerCase() !== "ollama external" &&
               (!apiKeys.some(
                 (key) => key.provider === selectedProvider.toLowerCase()
               ) ||

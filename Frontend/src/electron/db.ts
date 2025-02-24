@@ -57,6 +57,7 @@ class DatabaseService {
           baseUrl TEXT,
           selectedAzureId INTEGER,
           selectedCustomId INTEGER,
+          selectedExternalOllamaId INTEGER,
           cot INTEGER DEFAULT 0,
           webSearch INTEGER DEFAULT 0,
           reasoningEffort TEXT,
@@ -179,6 +180,16 @@ class DatabaseService {
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS ollama_external (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
+          name TEXT NOT NULL,
+          endpoint TEXT NOT NULL,
+          api_key TEXT NOT NULL,
+          model TEXT NOT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS account (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           type TEXT NOT NULL,
@@ -247,6 +258,7 @@ class DatabaseService {
         { name: "cot", type: "INTEGER" },
         { name: "webSearch", type: "INTEGER" },
         { name: "reasoningEffort", type: "TEXT" },
+        { name: "selectedExternalOllamaId", type: "INTEGER" },
       ];
       // Get current table info
       const tableInfo = this.db
@@ -289,6 +301,7 @@ class DatabaseService {
             cot INTEGER DEFAULT 0,
             webSearch INTEGER DEFAULT 0,
             reasoningEffort TEXT,
+            selectedExternalOllamaId INTEGER,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
           );
         `);
@@ -313,6 +326,7 @@ class DatabaseService {
           cot: number;
           webSearch: number;
           reasoningEffort: string;
+          selectedExternalOllamaId: number;
         }[]) {
           try {
             // Check if user exists before restoring their settings
@@ -327,8 +341,8 @@ class DatabaseService {
               INSERT INTO settings (
                 user_id, model, promptId, temperature, provider, maxTokens,
                 vectorstore, modelDirectory, modelType, modelLocation,
-                ollamaIntegration, ollamaModel, baseUrl, selectedAzureId, selectedCustomId, webSearch, reasoningEffort
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ollamaIntegration, ollamaModel, baseUrl, selectedAzureId, selectedCustomId, webSearch, reasoningEffort, selectedExternalOllamaId
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `
               )
               .run(
@@ -348,7 +362,8 @@ class DatabaseService {
                 row.selectedAzureId,
                 row.selectedCustomId,
                 row.webSearch,
-                row.reasoningEffort
+                row.reasoningEffort,
+                row.selectedExternalOllamaId
               );
           } catch (error) {
             console.error("Error restoring settings row:", error);
@@ -462,6 +477,7 @@ class DatabaseService {
           "timestamp",
         ],
         retrieved_data: ["id", "message_id", "data_content"],
+        ollama_external: ["id", "user_id", "name", "endpoint", "api_key", "model"],
       } as const;
 
       tables.forEach((table) => {
@@ -559,7 +575,7 @@ class DatabaseService {
     const currentSettings = this.db
       .prepare("SELECT * FROM settings WHERE user_id = ?")
       .get(settings.userId) as UserSettings;
-
+    console.log("currentSettings", currentSettings);
     // Merge current settings with new settings, preserving non-null values
     const updatedSettings = {
       cot: settings.cot ?? currentSettings?.cot,
@@ -584,11 +600,14 @@ class DatabaseService {
       webSearch: settings.webSearch ?? currentSettings?.webSearch,
       reasoningEffort:
         settings.reasoningEffort ?? currentSettings?.reasoningEffort,
+      selectedExternalOllamaId:
+        settings.selectedExternalOllamaId ??
+        currentSettings?.selectedExternalOllamaId,
     };
-
+    console.log("updatedSettings", updatedSettings);
     return this.db
       .prepare(
-        "UPDATE settings SET model = ?, promptId = ?, temperature = ?, provider = ?, maxTokens = ?, vectorstore = ?, modelDirectory = ?, modelType = ?, modelLocation = ?, ollamaIntegration = ?, ollamaModel = ?, baseUrl = ?, selectedAzureId = ?, selectedCustomId = ?, cot = ?, webSearch = ?, reasoningEffort = ? WHERE user_id = ?"
+        "UPDATE settings SET model = ?, promptId = ?, temperature = ?, provider = ?, maxTokens = ?, vectorstore = ?, modelDirectory = ?, modelType = ?, modelLocation = ?, ollamaIntegration = ?, ollamaModel = ?, baseUrl = ?, selectedAzureId = ?, selectedCustomId = ?, cot = ?, webSearch = ?, reasoningEffort = ?, selectedExternalOllamaId = ? WHERE user_id = ?"
       )
       .run(
         updatedSettings.model,
@@ -608,6 +627,7 @@ class DatabaseService {
         updatedSettings.cot,
         updatedSettings.webSearch,
         updatedSettings.reasoningEffort,
+        updatedSettings.selectedExternalOllamaId,
         settings.userId
       );
   }
@@ -1115,6 +1135,34 @@ class DatabaseService {
 
   getTools() {
     return this.db.prepare("SELECT * FROM tools").all();
+  }
+
+  addExternalOllama(
+    userId: number,
+    name: string,
+    endpoint: string,
+    api_key: string,
+    model: string
+  ) {
+    const existingOllama = this.db
+      .prepare("SELECT * FROM ollama_external WHERE user_id = ? AND name = ?")
+      .get(userId, name);
+    if (existingOllama) {
+      return {
+        error: "Ollama already exists",
+      };
+    }
+    const lastInsertRowid = this.db
+      .prepare(
+        "INSERT INTO ollama_external (user_id, name, endpoint, api_key, model) VALUES (?, ?, ?, ?, ?)"
+      )
+      .run(userId, name, endpoint, api_key, model).lastInsertRowid;
+    return lastInsertRowid;
+  }
+  getExternalOllama(userId: number) {
+    return this.db
+      .prepare("SELECT * FROM ollama_external WHERE user_id = ?")
+      .all(userId) as ExternalOllama[];
   }
 }
 

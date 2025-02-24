@@ -72,6 +72,7 @@ interface UserSettings {
   promptId?: number;
   webSearch?: number;
   reasoningEffort?: ReasoningEffort;
+  selectedExternalOllamaId?: number;
 }
 
 type Collection = {
@@ -400,6 +401,14 @@ interface EventPayloadMapping {
     docked: number;
   };
   getTools: void;
+  addExternalOllama: {
+    userId: number;
+    name: string;
+    endpoint: string;
+    api_key: string;
+    model: string;
+  };
+  getExternalOllama: { userId: number };
 }
 
 interface Window {
@@ -848,6 +857,18 @@ interface Window {
     ) => Promise<{
       result: boolean;
     }>;
+    addExternalOllama: (
+      userId: number,
+      name: string,
+      endpoint: string,
+      api_key: string,
+      model: string
+    ) => Promise<{
+      id: number;
+    }>;
+    getExternalOllama: (userId: number) => Promise<{
+      ollama: ExternalOllama[];
+    }>;
   };
 }
 type Keys = {
@@ -883,7 +904,8 @@ type LLMProvider =
   | "local"
   | "ollama"
   | "azure open ai"
-  | "custom";
+  | "custom"
+  | "ollama external";
 
 interface OllamaProgressEvent {
   type: "pull" | "verify";
@@ -953,6 +975,14 @@ interface DownloadProgress {
 interface OllamaModel {
   name: string;
   type: string;
+}
+interface ExternalOllama {
+  id: number;
+  user_id: number;
+  name: string;
+  endpoint: string;
+  api_key: string;
+  model: string;
 }
 interface DownloadProgressData {
   message: string;

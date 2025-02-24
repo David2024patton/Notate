@@ -6,6 +6,11 @@ export async function providerInitialize(
   providerName: string,
   activeUser: User
 ): Promise<OpenAI | AzureOpenAI> {
+  console.log("Initializing provider", providerName);
+  if (providerName === "ollama external") {
+    console.log("Initializing External Ollama");
+    return initializeExternalOllama(activeUser);
+  }
   if (providerName === "openrouter") {
     console.log("Initializing OpenRouter");
     return initializeOpenRouter(activeUser);
@@ -38,6 +43,28 @@ export async function providerInitialize(
     throw new Error(`${providerName} instance not initialized`);
   }
   return provider;
+}
+
+async function initializeExternalOllama(activeUser: User) {
+  const userSettings = await db.getUserSettings(activeUser.id);
+  if (!userSettings) {
+    throw new Error("User settings not found for the active user");
+  }
+  if (!userSettings.selectedExternalOllamaId) {
+    throw new Error("External Ollama model not found for the active user");
+  }
+  const externalOllama = db.getExternalOllama(activeUser.id);
+  const selectedExternalOllama = externalOllama.find(
+    (ollama) => ollama.id === userSettings.selectedExternalOllamaId
+  );
+  if (!selectedExternalOllama) {
+    throw new Error("External Ollama model not found for the active user");
+  }
+  const openai = new OpenAI({
+    apiKey: selectedExternalOllama.api_key || "ollama",
+    baseURL: selectedExternalOllama.endpoint,
+  });
+  return openai;
 }
 
 async function initializeOpenRouter(activeUser: User) {

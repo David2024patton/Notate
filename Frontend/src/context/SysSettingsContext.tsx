@@ -182,7 +182,11 @@ const SysSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
         title: "Success",
         description: `Started Ollama with model: ${model}`,
       });
-
+      await window.electron.updateUserSettings({
+        userId: activeUser.id,
+        provider: "Ollama",
+        model: model,
+      });
       setSettings((prev) => ({
         ...prev,
         provider: "Ollama",

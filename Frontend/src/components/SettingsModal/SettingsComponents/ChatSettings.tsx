@@ -42,6 +42,7 @@ export default function ChatSettings() {
     setConversations,
     setActiveUser,
     openRouterModels,
+    externalOllama,
   } = useUser();
   const { setSelectedCollection, setFiles } = useLibrary();
   const { activeUser, apiKeys, prompts, azureModels, customModels } = useUser();
@@ -96,6 +97,17 @@ export default function ChatSettings() {
       provider: provider.toLowerCase(),
       model: model_name,
     });
+    if (provider === "ollama external") {
+      await window.electron.updateUserSettings({
+        userId: activeUser.id,
+        provider: "ollama external",
+        model:
+          externalOllama?.find((model) => model.name === model_name)?.model ??
+          "",
+        selectedExternalOllamaId:
+          externalOllama?.find((model) => model.name === model_name)?.id ?? 0,
+      });
+    }
     if (provider === "ollama") {
       await window.electron.updateUserSettings({
         userId: activeUser.id,
@@ -155,6 +167,7 @@ export default function ChatSettings() {
     "azure open ai": 4096,
     custom: 2048,
     deepseek: 8192,
+    "ollama external": 2048,
   };
 
   const modelOptions = {
@@ -195,6 +208,7 @@ export default function ChatSettings() {
     "azure open ai": azureModels?.map((model) => model.name) || [],
     custom: customModels?.map((model) => model.name) || [],
     deepseek: ["deepseek-chat", "deepseek-reasoner"],
+    "ollama external": externalOllama?.map((model) => model.name) || [],
   };
 
   const handleAddPrompt = async () => {
@@ -375,7 +389,14 @@ export default function ChatSettings() {
             </Label>
             <Select
               value={
-                settings.provider === "custom"
+                settings.provider === "ollama external" && externalOllama
+                  ? (() => {
+                      const modelInfo = externalOllama.find(
+                        (m) => m.id === settings.selectedExternalOllamaId
+                      );
+                      return modelInfo?.name || settings.model;
+                    })()
+                  : settings.provider === "custom"
                   ? settings.displayModel || settings.model
                   : settings.model
               }
@@ -386,6 +407,9 @@ export default function ChatSettings() {
 
                 if (modelOptions.ollama.includes(value)) {
                   provider = "ollama";
+                }
+                if (modelOptions["ollama external"].includes(value)) {
+                  provider = "ollama external";
                 }
                 if (!activeUser) {
                   return;
@@ -464,7 +488,23 @@ export default function ChatSettings() {
               }}
             >
               <SelectTrigger className="col-span-3 bg-background">
-                <SelectValue placeholder="Select model" />
+                <SelectValue placeholder="Select model">
+                  {settings.provider === "ollama external" && externalOllama
+                    ? (() => {
+                        const modelInfo = externalOllama.find(
+                          (m) => m.id === settings.selectedExternalOllamaId
+                        );
+                        if (modelInfo) {
+                          const endpoint =
+                            modelInfo.endpoint
+                              ?.replace(/^https?:\/\//, "")
+                              .replace(/\/.*$/, "") || "unknown";
+                          return `${modelInfo.name} [External: ${endpoint}]`;
+                        }
+                        return settings.model;
+                      })()
+                    : settings.model}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-background">
                 {apiKeys.map((apiKey) => (
@@ -474,41 +514,72 @@ export default function ChatSettings() {
                     </SelectLabel>
                     {modelOptions[
                       apiKey.provider.toLowerCase() as keyof typeof modelOptions
-                    ]?.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
+                    ]
+                      ?.filter((model) => model && model.trim() !== "")
+                      .map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
+                        </SelectItem>
+                      ))}
                   </SelectGroup>
                 ))}
                 {localModels.length > 0 && (
                   <SelectGroup>
                     <SelectLabel className="font-semibold">LOCAL</SelectLabel>
-                    {modelOptions.local.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
+                    {modelOptions.local
+                      .filter((model) => model && model.trim() !== "")
+                      .map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
+                        </SelectItem>
+                      ))}
                   </SelectGroup>
                 )}
                 {ollamaModels.length > 0 && (
                   <SelectGroup>
                     <SelectLabel className="font-semibold">OLLAMA</SelectLabel>
-                    {modelOptions.ollama.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
+                    {modelOptions.ollama
+                      .filter((model) => model && model.trim() !== "")
+                      .map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
+                        </SelectItem>
+                      ))}
                   </SelectGroup>
                 )}
                 {customModels.length > 0 && (
                   <SelectGroup>
                     <SelectLabel className="font-semibold">CUSTOM</SelectLabel>
-                    {modelOptions.custom.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {model}
-                      </SelectItem>
-                    ))}
+                    {modelOptions.custom
+                      .filter((model) => model && model.trim() !== "")
+                      .map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {model}
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                )}
+                {externalOllama.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel className="font-semibold">
+                      OLLAMA EXTERNAL
+                    </SelectLabel>
+                    {modelOptions["ollama external"]
+                      .filter((model) => model && model.trim() !== "")
+                      .map((model) => {
+                        const modelInfo = externalOllama.find(
+                          (m) => m.name === model
+                        );
+                        const endpoint =
+                          modelInfo?.endpoint
+                            ?.replace(/^https?:\/\//, "")
+                            .replace(/\/.*$/, "") || "unknown";
+                        return (
+                          <SelectItem key={model} value={model}>
+                            {model} [External: {endpoint}]
+                          </SelectItem>
+                        );
+                      })}
                   </SelectGroup>
                 )}
               </SelectContent>

@@ -76,7 +76,6 @@ export async function geminiAgent(
     { signal }
   );
   const responseText = result.response.text();
-  console.log("responseText", responseText);
   let agentActions;
   try {
     // Clean up markdown formatting if present
@@ -88,7 +87,6 @@ export async function geminiAgent(
     agentActions = AgentActions.parse(JSON.parse(cleanedResponse));
   } catch (error) {
     console.error("Failed to parse agent response:", error);
-    console.log("Raw response:", responseText); // Add logging for debugging
     // Fallback to no web search if parsing fails
     agentActions = { webUrl: 0, url: "" };
   }

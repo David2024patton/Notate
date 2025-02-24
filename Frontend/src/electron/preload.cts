@@ -608,6 +608,26 @@ electron.contextBridge.exposeInMainWorld("electron", {
         description: string;
       }[];
     }>,
+  addExternalOllama: (
+    userId: number,
+    name: string,
+    endpoint: string,
+    api_key: string,
+    model: string
+  ) =>
+    ipcInvoke("addExternalOllama", {
+      userId,
+      name,
+      endpoint,
+      api_key,
+      model,
+    }) as unknown as Promise<{
+      id: number;
+    }>,
+  getExternalOllama: (userId: number) =>
+    ipcInvoke("getExternalOllama", { userId }) as unknown as Promise<{
+      ollama: ExternalOllama[];
+    }>,
 } satisfies Window["electron"]);
 
 function ipcInvoke<Key extends keyof EventPayloadMapping>(

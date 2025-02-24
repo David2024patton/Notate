@@ -4,6 +4,7 @@ export const useModelManagement = (activeUser: User | null) => {
   const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>(
     []
   );
+  const [externalOllama, setExternalOllama] = useState<ExternalOllama[]>([]);
   const [azureModels, setAzureModels] = useState<AzureModel[]>([]);
   const [customModels, setCustomModels] = useState<CustomModel[]>([]);
   const [tools, setTools] = useState<Tool[]>([]);
@@ -13,6 +14,12 @@ export const useModelManagement = (activeUser: User | null) => {
     if (!window.electron || !activeUser) return;
     const models = await window.electron.getOpenRouterModels(activeUser.id);
     setOpenRouterModels(models.models);
+  }, [activeUser]);
+
+  const fetchExternalOllama = useCallback(async () => {
+    if (!window.electron || !activeUser) return;
+    const ollama = await window.electron.getExternalOllama(activeUser.id);
+    setExternalOllama(ollama.ollama);
   }, [activeUser]);
 
   const fetchAzureModels = useCallback(async () => {
@@ -137,5 +144,8 @@ export const useModelManagement = (activeUser: User | null) => {
     userTools,
     setUserTools,
     toggleTool,
+    externalOllama,
+    setExternalOllama,
+    fetchExternalOllama,
   };
 };

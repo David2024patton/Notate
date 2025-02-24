@@ -222,7 +222,6 @@ export async function GeminiProvider(
       content: `${JSON.stringify(newSysPrompt)}\n\n${mainMessages[0].content}`,
     };
   }
-  console.log(mainMessages);
   const chat: ChatSession = model.startChat({
     history: mainMessages
       .filter((msg) => msg.role !== "system")

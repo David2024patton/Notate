@@ -25,9 +25,7 @@ export async function chatCompletion(
 
   const maxOutputTokens = (userSettings.maxTokens as number) || 4096;
   const userId = params.activeUser.id;
-  console.log("userId", userId);
   const userTools = db.getUserTools(userId);
-  console.log("userTools", userTools);
   let agentActions = null;
   let webSearchResult = null;
   // If the user has Web Search enabled, we need to do web search first
@@ -42,8 +40,6 @@ export async function chatCompletion(
     agentActions = actions;
     webSearchResult = webResults;
   }
-
-  console.log(agentActions);
 
   const newMessages = await prepMessages(messages);
 
